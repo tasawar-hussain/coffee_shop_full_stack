@@ -1,11 +1,20 @@
 import os
+
+from dotenv import find_dotenv, load_dotenv
 from sqlalchemy import Column, String, Integer
 from flask_sqlalchemy import SQLAlchemy
 import json
 
-database_filename = "database.db"
-project_dir = os.path.dirname(os.path.abspath(__file__))
-database_path = "sqlite:///{}".format(os.path.join(project_dir, database_filename))
+
+# Load environment variables from .env
+load_dotenv(find_dotenv())
+
+# Connect to the database
+SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URI")
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+SQLALCHEMY_ECHO = True
+FLASK_APP = os.environ.get("FLASK_APP")
+FLASK_ENV = os.environ.get("FLASK_ENV")
 
 db = SQLAlchemy()
 
@@ -16,8 +25,12 @@ setup_db(app)
 
 
 def setup_db(app):
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_path
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = SQLALCHEMY_TRACK_MODIFICATIONS
+    app.config["SQLALCHEMY_ECHO"] = SQLALCHEMY_ECHO
+    app.config['FLASK_APP'] = FLASK_APP
+    app.config['FLASK_ENV'] = FLASK_ENV
+    db.app = app
     db.app = app
     db.init_app(app)
 
@@ -38,10 +51,8 @@ def db_drop_and_create_all():
         title='water',
         recipe='[{"name": "water", "color": "blue", "parts": 1}]'
     )
-
-
     drink.insert()
-# ROUTES
+
 
 '''
 Drink
@@ -65,7 +76,8 @@ class Drink(db.Model):
 
     def short(self):
         print(json.loads(self.recipe))
-        short_recipe = [{'color': r['color'], 'parts': r['parts']} for r in json.loads(self.recipe)]
+        short_recipe = [{'color': r['color'], 'parts': r['parts']}
+                        for r in json.loads(self.recipe)]
         return {
             'id': self.id,
             'title': self.title,
