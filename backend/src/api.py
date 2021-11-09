@@ -15,7 +15,7 @@ CORS(app)
 @TODO uncomment the following line to initialize the datbase
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
-!! Running this funciton will add one
+!! Running this function will add one
 '''
 # db_drop_and_create_all()
 
@@ -91,24 +91,55 @@ def unprocessable(error):
     }), 422
 
 
-'''
-@TODO implement error handlers using the @app.errorhandler(error) decorator
-    each error handler should return (with approprate messages):
-             jsonify({
-                    "success": False,
-                    "error": 404,
-                    "message": "resource not found"
-                    }), 404
-
-'''
-
-'''
-@TODO implement error handler for 404
-    error handler should conform to general task above
-'''
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({
+        "success": False,
+        "error": 400,
+        "message": "bad request"
+    }), 400
 
 
-'''
-@TODO implement error handler for AuthError
-    error handler should conform to general task above
-'''
+@app.errorhandler(404)
+def not_found(error):
+    return (
+        jsonify({
+            "success": False,
+            "error": 404,
+            "message": "resource not found"
+        }),
+        404,
+    )
+
+
+@app.errorhandler(405)
+def method_not_allowed(error):
+    print(error)
+    return jsonify({
+        "success": False,
+        "error": 405,
+        "message": 'Method Not Allowed'
+    }), 405
+
+
+@app.errorhandler(500)
+def bad_request(error):
+    return jsonify({
+        "success": False,
+        "error": 500,
+        "message": "Internal server error"
+    }), 500
+
+
+@app.errorhandler(AuthError)
+def auth_error(error):
+    return jsonify({
+        "success": False,
+        "error": error.status_code,
+        "message": error.error['description']
+    }), error.status_code
+
+
+if __name__ == "__main__":
+    app.debug = True
+    app.run()
